@@ -1,0 +1,11 @@
+{
+	"packageName": "er",
+	"additionalProperties": {
+		"excludeFiles": [
+			"git_push.sh",
+			".gitignore"
+		]
+	},
+	"generateModels": false,
+	"outputDir": "/local"
+}

@@ -1,0 +1,670 @@
+{
+	"components": {
+		"schemas": {
+			"datatype_dictionary": {
+				"example": {
+					"Boolean": 3,
+					"Double": 1,
+					"Integer": 2,
+					"String": 0
+				},
+				"properties": {
+					"Boolean": {
+						"type": "integer"
+					},
+					"Double": {
+						"type": "integer"
+					},
+					"Integer": {
+						"type": "integer"
+					},
+					"String": {
+						"type": "integer"
+					}
+				},
+				"type": "object"
+			},
+			"program": {
+				"properties": {
+					"arguments": {
+						"items": {
+							"$ref": "#/components/schemas/program_setting"
+						},
+						"type": "array"
+					},
+					"name": {
+						"type": "string"
+					},
+					"webhook": {
+						"properties": {
+							"context": {
+								"example": "some identifier included in callback to server",
+								"type": "string"
+							},
+							"uri": {
+								"example": "http://myserver.com:8002/status",
+								"format": "uri",
+								"type": "string"
+							}
+						},
+						"required": [
+							"uri"
+						],
+						"type": "object"
+					}
+				},
+				"required": [
+					"name"
+				],
+				"type": "object"
+			},
+			"program_array": {
+				"items": {
+					"type": "string"
+				},
+				"type": "array"
+			},
+			"program_setting": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"type": {
+						"enum": [
+							0,
+							1,
+							2,
+							3,
+							4,
+							5,
+							6,
+							7,
+							8
+						],
+						"type": "integer"
+					},
+					"value": {
+						"type": "string"
+					}
+				},
+				"type": "object"
+			},
+			"reference_array": {
+				"example": {
+					"names": [
+						"Base",
+						"World"
+					],
+					"uids": [
+						"Base",
+						"World"
+					]
+				},
+				"properties": {
+					"names": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"uids": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object"
+			},
+			"state": {
+				"properties": {
+					"state": {
+						"enum": [
+							"Idle",
+							"Emergency Stop Active",
+							"Safeguard Stop Active",
+							"Entity Error Active",
+							"No Program",
+							"Loading Program",
+							"Ready",
+							"Recovery",
+							"Executing",
+							"Pausing Execution",
+							"Paused",
+							"Stopping Execution",
+							"Execution Error Active",
+							"Joystick Active"
+						],
+						"type": "string"
+					}
+				},
+				"required": [
+					"state"
+				],
+				"type": "object"
+			},
+			"status": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/state"
+					},
+					{
+						"properties": {
+							"current_program": {
+								"$ref": "#/components/schemas/program"
+							}
+						},
+						"type": "object"
+					},
+					{
+						"properties": {
+							"battery": {
+								"example": 67,
+								"type": "integer"
+							}
+						},
+						"type": "object"
+					},
+					{
+						"properties": {
+							"message": {
+								"example": "Error in program (only if state is Execution Error Active)",
+								"type": "string"
+							}
+						},
+						"type": "object"
+					}
+				]
+			},
+			"transform": {
+				"example": {
+					"transform": [
+						0.8008282,
+						0.8008282,
+						0.8008282,
+						0.8008282,
+						0.8008282,
+						0.8008282
+					]
+				},
+				"properties": {
+					"transform": {
+						"items": {
+							"format": "float",
+							"type": "number"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object"
+			}
+		}
+	},
+	"info": {
+		"description": "REST Interface exposed by Enabled Robotics",
+		"title": "Enabled Robotics REST Interface",
+		"version": "0.1-oas3"
+	},
+	"openapi": "3.0.0",
+	"paths": {
+		"/download/{folder}/{file_name}": {
+			"get": {
+				"description": "Downloads a file",
+				"operationId": "download_file",
+				"parameters": [
+					{
+						"description": "Name of the folder where the file is located",
+						"explode": false,
+						"in": "path",
+						"name": "folder",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"style": "simple"
+					},
+					{
+						"description": "Name of the file to download",
+						"explode": false,
+						"in": "path",
+						"name": "file_name",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"style": "simple"
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"multipart/form-data": {
+								"schema": {
+									"properties": {
+										"file": {
+											"format": "binary",
+											"type": "string"
+										}
+									},
+									"type": "object"
+								}
+							}
+						},
+						"description": "success"
+					},
+					"500": {
+						"description": "General server error"
+					}
+				},
+				"tags": [
+					"Files"
+				],
+				"x-openapi-router-controller": "rest_backend.er_files_controller"
+			}
+		},
+		"/help/datatypes": {
+			"get": {
+				"description": "Get a dictionary from supported datatypes to IDs",
+				"operationId": "get_datatypes",
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/datatype_dictionary",
+									"properties": {
+										"file_name": {
+											"type": "string"
+										}
+									},
+									"type": "object"
+								}
+							}
+						},
+						"description": "success"
+					}
+				},
+				"tags": [
+					"Help"
+				],
+				"x-openapi-router-controller": "rest_backend.er_controller_v2"
+			}
+		},
+		"/programs": {
+			"get": {
+				"description": "Get all available programs on the robot",
+				"operationId": "programs_get",
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/program_array"
+								}
+							}
+						},
+						"description": "Success"
+					},
+					"500": {
+						"description": "General server error"
+					},
+					"503": {
+						"description": "No connection to backend"
+					}
+				},
+				"tags": [
+					"Programs"
+				],
+				"x-openapi-router-controller": "rest_backend.er_controller_v2"
+			}
+		},
+		"/programs/current": {
+			"get": {
+				"description": "Get the currently loaded program",
+				"operationId": "programs_current_get",
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/program"
+								}
+							}
+						},
+						"description": "Success"
+					},
+					"204": {
+						"description": "No program is currently loaded"
+					},
+					"500": {
+						"description": "General server error"
+					},
+					"503": {
+						"description": "No connection to backend"
+					}
+				},
+				"tags": [
+					"Programs"
+				],
+				"x-openapi-router-controller": "rest_backend.er_controller_v2"
+			},
+			"put": {
+				"callbacks": {
+					"executionStateChangedEvent": {
+						"{$request.body#/webhook/uri}": {
+							"get": {
+								"responses": {
+									"200": {
+										"description": "Your server returns this code if it accepts callbacks at this endpoint. This endpoint will be deprecated in future version."
+									}
+								}
+							},
+							"put": {
+								"requestBody": {
+									"content": {
+										"application/json": {
+											"schema": {
+												"properties": {
+													"context": {
+														"type": "string"
+													},
+													"message": {
+														"example": "Some error happened",
+														"type": "string"
+													},
+													"state": {
+														"enum": [
+															"Idle",
+															"Preparing Execution",
+															"Executing",
+															"Pausing Execution",
+															"Paused",
+															"Stopping Execution",
+															"Execution Error Active"
+														],
+														"example": "Executing",
+														"type": "string"
+													}
+												},
+												"required": [
+													"state"
+												],
+												"type": "object"
+											}
+										}
+									},
+									"required": true
+								},
+								"responses": {
+									"200": {
+										"description": "Your server returns this code if it accepts the callback. This endpoint will be deprecated in future version."
+									},
+									"404": {
+										"description": "Your server returns this code if the callback context could not be found (client will unregister)"
+									}
+								}
+							}
+						}
+					}
+				},
+				"description": "Load a new program",
+				"operationId": "programs_current_put",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/program"
+							}
+						}
+					},
+					"description": "Program name",
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Success. This endpoint will be deprecated in future version."
+					},
+					"400": {
+						"description": "General user error"
+					},
+					"500": {
+						"description": "General server error"
+					},
+					"503": {
+						"description": "No connection to backend"
+					}
+				},
+				"tags": [
+					"Programs"
+				],
+				"x-openapi-router-controller": "rest_backend.er_controller_v2"
+			}
+		},
+		"/references": {
+			"get": {
+				"description": "Get all defined references on the system",
+				"operationId": "references_get",
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/reference_array"
+								}
+							}
+						},
+						"description": "success"
+					},
+					"500": {
+						"description": "General server error"
+					},
+					"503": {
+						"description": "No connection to backend"
+					}
+				},
+				"tags": [
+					"References"
+				],
+				"x-openapi-router-controller": "rest_backend.er_controller_v2"
+			}
+		},
+		"/status": {
+			"get": {
+				"description": "Get the current status of the robot",
+				"operationId": "status_get",
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/status"
+								}
+							}
+						},
+						"description": "Success"
+					},
+					"500": {
+						"description": "General server error"
+					},
+					"503": {
+						"description": "No connection to backend"
+					}
+				},
+				"tags": [
+					"Status"
+				],
+				"x-openapi-router-controller": "rest_backend.er_controller_v2"
+			},
+			"put": {
+				"description": "Change the state of the robot",
+				"operationId": "status_put",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"state": {
+										"enum": [
+											"Executing",
+											"Paused",
+											"Ready"
+										],
+										"type": "string"
+									}
+								},
+								"required": [
+									"state"
+								],
+								"type": "object"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/status"
+								}
+							}
+						},
+						"description": "Success. This endpoint will be deprecated in future version."
+					},
+					"400": {
+						"description": "General user error"
+					},
+					"500": {
+						"description": "General server error"
+					},
+					"503": {
+						"description": "No connection to backend"
+					}
+				},
+				"tags": [
+					"Status"
+				],
+				"x-openapi-router-controller": "rest_backend.er_controller_v2"
+			}
+		},
+		"/transform/{ref_id}": {
+			"get": {
+				"description": "Get transform to a specific reference (XYZRPY) (Meters and Radians)",
+				"operationId": "ref_get",
+				"parameters": [
+					{
+						"description": "UID of target reference",
+						"explode": false,
+						"in": "path",
+						"name": "ref_id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"style": "simple"
+					},
+					{
+						"description": "UID of base reference (default=World)",
+						"explode": true,
+						"in": "query",
+						"name": "_from",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"style": "form"
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/transform"
+								}
+							}
+						},
+						"description": "success"
+					}
+				},
+				"tags": [
+					"References"
+				],
+				"x-openapi-router-controller": "rest_backend.er_controller_v2"
+			}
+		},
+		"/upload": {
+			"put": {
+				"description": "Uploads a file",
+				"operationId": "upload_file",
+				"requestBody": {
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"properties": {
+									"file": {
+										"format": "binary",
+										"type": "string"
+									}
+								},
+								"type": "object"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"file_name": {
+											"type": "string"
+										}
+									},
+									"type": "object"
+								}
+							}
+						},
+						"description": "success"
+					},
+					"500": {
+						"description": "General server error"
+					}
+				},
+				"tags": [
+					"Files"
+				],
+				"x-openapi-router-controller": "rest_backend.er_files_controller"
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/v2"
+		}
+	],
+	"tags": [
+		{
+			"description": "Get and load programs",
+			"name": "Programs"
+		},
+		{
+			"description": "Start and stop program execution",
+			"name": "Status"
+		},
+		{
+			"description": "Get references and transforms between references",
+			"name": "References"
+		},
+		{
+			"description": "Miscellaneous help and lookup",
+			"name": "Help"
+		},
+		{
+			"description": "Upload and Download files",
+			"name": "Files"
+		}
+	]
+}

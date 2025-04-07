@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  swagger-codegen:
+    container_name: swagger-codegen-er
+    image: swaggerapi/swagger-codegen-cli-v3
+    volumes:
+      - /home/robot-ranger/development/process-robotics/tmp/er-api:/local
+    # command: ls -la
+    command: generate -i /local/swagger.json -l python -c /local/config.json
